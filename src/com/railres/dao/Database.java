@@ -5,11 +5,16 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.railres.*;
-import com.railres.train.*;
+import com.railres.Passenger;
+import com.railres.train.Availability;
+import com.railres.train.Station;
+import com.railres.train.Ticket;
+import com.railres.train.Train;
+import com.railres.user.User;
 
 public class Database {
 	
+	private List<User> users = new ArrayList<>();
 	
 	private List<Train> trains = new ArrayList<>();
 	private List<Station> stations = new ArrayList<>();
@@ -22,6 +27,8 @@ public class Database {
 		
 	private Database()
 	{
+		users.add(new User("anbu", "1234"));
+		
 		stations.add(new Station("Chennai"));
 		stations.add(new Station("Mumbai"));
 		stations.add(new Station("Banglore"));
@@ -38,6 +45,10 @@ public class Database {
 			instance = new Database();
 		}
 		return instance;
+	}
+	
+	public List<User> getUsers(){
+		return users;
 	}
 	
 	public List<Train> getTrains(){
@@ -131,6 +142,21 @@ public class Database {
 		return false;
 	}
 	
+	public boolean isExistingUser(String name,String pwd) {
+		for(User user : users) {
+			if(user.getUsername().equals(name) && user.getPassword().equals(pwd))
+				return true;
+		}
+		return false;
+	}
+	
+	public boolean checkUser(String username) {
+		for(User user : users) {
+			if(user.getUsername().equals(username))
+				return true;
+		}
+		return false;
+	}
 
 	
 	

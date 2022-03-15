@@ -1,15 +1,20 @@
 package com.railres;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import com.railres.dao.Database;
 import com.railres.train.Ticket;
 import com.railres.train.Train;
+import com.railres.user.User;
 
 public class Menu {
 
@@ -17,12 +22,90 @@ public class Menu {
 		
 		Database db = Database.getInstance();
 		
+//		Properties prop = new Properties();
+//		String fileName = "railres.config";
+//		try (FileInputStream fis = new FileInputStream(fileName)) {
+//		    prop.load(fis);
+//		} catch (FileNotFoundException ex) {
+//		    System.out.println(ex); // FileNotFoundException catch is optional and can be collapsed
+//		} catch (IOException ex) {
+//		}
+//		
+//		System.out.println(prop.getProperty("name"));
+		
 		System.out.println("\n******************************");
 		System.out.println("  Railway Reservation System");
 		System.out.println("******************************");
 		
 		Scanner sc = new Scanner(System.in);
 		String choice;
+		
+		home:
+		while(true) {
+			System.out.println("\n1. Register\n2. Login\n");
+			System.out.println("\nEnter yout choice : ");
+			choice = sc.next();
+			switch(choice) {
+			case "1":
+				System.out.println("\n---Signup Page---\n");
+				
+				String name, pwd;
+				getName :
+				while(true) {
+					System.out.println("\nEnter username : ");
+					name = sc.next();
+					if(!isValidName(name)) {
+						System.out.println("\n# Username must be 3 character long and must only have letters #\n");
+						continue getName;
+					}
+					break getName;
+				}	
+				
+				getPwd:
+				while(true) {
+					System.out.println("\nEnter password : ");
+					pwd = sc.next();
+					if(pwd.length()<5) {
+						System.out.println("\n# Password must be 5 characters long #\n");
+						continue getPwd;
+					}
+					break getPwd;
+				}
+				User user = new User(name,pwd);
+				db.getUsers().add(user);
+				System.out.println("\nSuccessfully registered.\nLogin to continue\n");
+				
+			case "2":
+				System.out.println("\n---Login Page---\n");
+				
+				String username, password;
+				while(true) {
+					System.out.println("\nEnter Username : ");
+					username = sc.next();
+					pwd:
+					while(true) {
+						System.out.println("\nEnter Password : ");
+						password = sc.next();
+						if(db.checkUser(username)) {
+							if(db.isExistingUser(username, password)) {
+								System.out.println("\nSuccessfully logged in\n");
+								break home;
+							}
+							else {
+								System.out.println("\nIncorrect password. Enter correct password to proceed #\n");
+								continue pwd;
+							}
+						}
+						else {
+							System.out.println("\nUser doesn't exists.");
+							continue home;
+						}
+					}
+				}
+			}
+		}
+			
+		
 		boolean loop = true;
 		
 		while(loop)
@@ -78,6 +161,10 @@ public class Menu {
 					String _date = sc.next();
 					if(!isValidDate(_date)) {
 						System.out.println("\n# Enter valid date / Enter date in specified format #");
+						continue getDate;
+					}
+					if(!isLogicalDate(_date)) {
+						System.out.println("\n# Date must not be in the past #");
 						continue getDate;
 					}
 					date = LocalDate.parse(_date);
@@ -157,6 +244,10 @@ public class Menu {
 					bookingdate = sc.next();
 					if(!isValidDate(bookingdate)) {
 						System.out.println("\n# Enter valid date #");
+						continue getDate;
+					}
+					if(!isLogicalDate(bookingdate)) {
+						System.out.println("\n# Date must not be in the past #");
 						continue getDate;
 					}
 					bookingDate = LocalDate.parse(bookingdate);
@@ -277,5 +368,13 @@ public class Menu {
 
 			    
 		return DATE_PATTERN.matcher(date).matches();
+	}
+	private static boolean isLogicalDate(String date) {
+		LocalDate _date = LocalDate.parse(date);
+		LocalDate presentDate = LocalDate.now();
+		if(_date.compareTo(presentDate)>=0) {
+			return true;
+		}
+		return false;
 	}
 }
